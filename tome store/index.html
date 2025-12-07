@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tome Store</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <style>
+    /* Add your custom styles here */
+
+    .page {
+      display: none;
+    }
+
+    .active {
+      display: block;
+    }
+
+    .page-navigation {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .page-navigation i {
+      font-size: 30px;
+      cursor: pointer;
+      margin: 0 10px;
+      color: #999;
+    }
+
+    .page-navigation i.active {
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tome Store</h1>
+  </header>
+
+  <main>
+    <section id="login-page" class="page active">
+      <h2>Login</h2>
+      <form id="login-form">
+        <label for="username">Username:</label>
+        <input type="text" id="username" required><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" required><br>
+
+        <div class="page-navigation">
+          <button type="button" onclick="login()">Login</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="home-page" class="page">
+      <h2>Welcome !!</h2>
+      <div class="page-navigation">
+        <i class="fas fa-pencil-alt" onclick="switchPage('sell-book-page')"></i>
+        <i class="fas fa-book" onclick="switchPage('book-list-page')"></i>
+        <i class="fas fa-comment" onclick="switchPage('write-review-page')"></i>
+      </div>
+    </section>
+
+    <section id="sell-book-page" class="page">
+      <h2>Sell a Book</h2>
+      <form id="book-form">
+        <label for="title">Title:</label>
+        <input type="text" id="title" required><br>
+
+        <label for="author">Author:</label>
+        <input type="text" id="author" required><br>
+
+        <label for="price">Price:</label>
+        <input type="number" id="price" step="0.01" required><br>
+
+        <label for="genre">Genre:</label>
+        <input type="text" id="genre" required><br>
+
+        <div class="page-navigation">
+          <i class="fas fa-arrow-left" onclick="switchPage('home-page')"></i>
+          <button type="button" onclick="addBook()">Add Book</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="book-list-page" class="page">
+      <h2>Books for Sale</h2>
+      <div>
+        <label for="min-price">Min Price:</label>
+        <input type="number" id="min-price" step="0.01">
+        <label for="max-price">Max Price:</label>
+        <input type="number" id="max-price" step="0.01">
+        <button id="filter-button" onclick="filterBooks()">Filter</button>
+        <button id="sort-button" onclick="sortBooksByTitle()">Sort by Title</button>
+      </div>
+      <ul id="books"></ul>
+      <div class="page-navigation">
+        <i class="fas fa-arrow-left" onclick="switchPage('home-page')"></i>
+      </div>
+    </section>
+
+    <section id="write-review-page" class="page">
+      <h2>Write a Review</h2>
+      <form id="review-form">
+        <label for="book-select">Select a Book:</label>
+        <select id="book-select"></select><br>
+
+        <label for="review">Review:</label>
+        <textarea id="review" rows="4" required></textarea><br>
+
+        <div class="page-navigation">
+          <i class="fas fa-arrow-left" onclick="switchPage('home-page')"></i>
+          <button type="button" onclick="submitReview()">Submit Review</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2023 Tome Store. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // JavaScript code goes here
+
+    let isLoggedIn = false;
+    const books = [];
+
+    function switchPage(pageId) {
+      const pages = document.getElementsByClassName('page');
+      for (const page of pages) {
+        page.classList.remove('active');
+      }
+      document.getElementById(pageId).classList.add('active');
+    }
+
+    function login() {
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+
+      // Perform server-side validation and authentication
+      // ...
+
+      // Assuming the login is successful
+      isLoggedIn = true;
+      switchPage('home-page');
+    }
+
+    function addBook() {
+      const titleInput = document.getElementById('title');
+      const authorInput = document.getElementById('author');
+      const priceInput = document.getElementById('price');
+      const genreInput = document.getElementById('genre');
+
+      // Retrieve input values and perform validation
+      const title = titleInput.value.trim();
+      const author = authorInput.value.trim();
+      const price = parseFloat(priceInput.value);
+      const genre = genreInput.value.trim();
+
+      if (title === '' || author === '' || isNaN(price) || genre === '') {
+        alert('Please fill in all the book details.');
+        return;
+      }
+
+      // Create a new book object
+      const book = {
+        title,
+        author,
+        price,
+        genre
+      };
+
+      // Add the book to the books array
+      books.push(book);
+
+      // Clear the form inputs
+      titleInput.value = '';
+      authorInput.value = '';
+      priceInput.value = '';
+      genreInput.value = '';
+
+      // Display the book in the book list
+      const bookList = document.getElementById('books');
+      const bookItem = document.createElement('li');
+      bookItem.textContent = ${book.title} by ${book.author} - $${book.price};
+      bookList.appendChild(bookItem);
+
+      switchPage('book-list-page');
+    }
+
+    function filterBooks() {
+      const minPriceInput = document.getElementById('min-price');
+      const maxPriceInput = document.getElementById('max-price');
+      const filterButton = document.getElementById('filter-button');
+
+      const minPrice = parseFloat(minPriceInput.value);
+      const maxPrice = parseFloat(maxPriceInput.value);
+
+      if (isNaN(minPrice) || isNaN(maxPrice) || minPrice > maxPrice) {
+        alert('Invalid price range.');
+        return;
+      }
+
+      const filteredBooks = books.filter(book => book.price >= minPrice && book.price <= maxPrice);
+
+      // Update the book list with filtered books
+      const bookList = document.getElementById('books');
+      bookList.innerHTML = '';
+
+      if (filteredBooks.length === 0) {
+        const noBooksMessage = document.createElement('li');
+        noBooksMessage.textContent = 'No books found.';
+        bookList.appendChild(noBooksMessage);
+      } else {
+        for (const book of filteredBooks) {
+          const bookItem = document.createElement('li');
+          bookItem.textContent = ${book.title} by ${book.author} - $${book.price};
+          bookList.appendChild(bookItem);
+        }
+      }
+    }
+
+    function sortBooksByTitle() {
+      books.sort((a, b) => a.title.localeCompare(b.title));
+
+      // Update the book list with sorted books
+      const bookList = document.getElementById('books');
+      bookList.innerHTML = '';
+
+      if (books.length === 0) {
+        const noBooksMessage = document.createElement('li');
+        noBooksMessage.textContent = 'No books found.';
+        bookList.appendChild(noBooksMessage);
+      } else {
+        for (const book of books) {
+          const bookItem = document.createElement('li');
+          bookItem.textContent = ${book.title} by ${book.author} - $${book.price};
+          bookList.appendChild(bookItem);
+        }
+      }
+    }
+
+    function loadBooks() {
+      // Simulating the loading of books from a server
+      // Assuming books are already fetched and stored in the "books" array
+
+      const bookList = document.getElementById('books');
+      bookList.innerHTML = '';
+
+      if (books.length === 0) {
+        const noBooksMessage = document.createElement('li');
+        noBooksMessage.textContent = 'No books found.';
+        bookList.appendChild(noBooksMessage);
+      } else {
+        for (const book of books) {
+          const bookItem = document.createElement('li');
+          bookItem.textContent = ${book.title} by ${book.author} - $${book.price};
+          bookList.appendChild(bookItem);
+        }
+      }
+    }
+
+    function loadBookOptions() {
+      const bookSelect = document.getElementById('book-select');
+      bookSelect.innerHTML = '';
+
+      if (books.length === 0) {
+        const noBooksOption = document.createElement('option');
+        noBooksOption.textContent = 'No books found.';
+        bookSelect.appendChild(noBooksOption);
+      } else {
+        for (const book of books) {
+          const bookOption = document.createElement('option');
+          bookOption.value = book.title;
+          bookOption.textContent = ${book.title} by ${book.author};
+          bookSelect.appendChild(bookOption);
+        }
+      }
+    }
+
+    function submitReview() {
+      const bookSelect = document.getElementById('book-select');
+      const reviewInput = document.getElementById('review');
+
+      const selectedBook = bookSelect.value;
+      const review = reviewInput.value.trim();
+
+      if (selectedBook === '' || review === '') {
+        alert('Please select a book and write a review.');
+        return;
+      }
+
+      // Perform review submission
+      // ...
+
+      alert('Review submitted successfully.');
+
+      // Clear the form inputs
+      bookSelect.value = '';
+      reviewInput.value = '';
+
+      switchPage('home-page');
+    }
+
+    // Load initial data
+    loadBooks();
+    loadBookOptions();
+  </script>
+</body>
+</html>
